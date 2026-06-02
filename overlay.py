@@ -122,20 +122,100 @@ class OverlayWindow:
         print(f"Exclusion display affinity applied to HWND {hwnd}: {'SUCCESS' if result else 'FAILED'}")
 
     def create_context_menu(self):
-        self.menu = tk.Menu(self.root, tearoff=0, bg=self.bg_color, fg=self.text_color, activebackground=self.accent_color, activeforeground="white")
-        self.menu.add_command(label="Очистити", command=self.clear_text)
-        self.menu.add_command(label="Сховати на 5 сек", command=self.temp_hide)
-        self.menu.add_separator()
-        self.menu.add_command(label="Закрити оверлей", command=self.root.withdraw)
+        # Create a Frame that acts as a custom context menu
+        self.menu_frame = tk.Frame(
+            self.root, 
+            bg="#242424", 
+            highlightbackground="#2c2c2c", 
+            highlightthickness=1
+        )
+        
+        # Styles for menu buttons
+        btn_opts = {
+            "bg": "#242424",
+            "fg": self.text_color,
+            "activebackground": self.accent_color,
+            "activeforeground": "white",
+            "bd": 0,
+            "anchor": "w",
+            "padx": 15,
+            "pady": 6,
+            "font": ("Segoe UI", 9)
+        }
+        
+        self.btn_clear = tk.Button(self.menu_frame, text="Очистити", command=self.menu_clear, **btn_opts)
+        self.btn_hide = tk.Button(self.menu_frame, text="Сховати на 5 сек", command=self.menu_hide, **btn_opts)
+        self.btn_close = tk.Button(self.menu_frame, text="Закрити оверлей", command=self.menu_close, **btn_opts)
+        
+        self.btn_clear.pack(fill=tk.X)
+        self.btn_hide.pack(fill=tk.X)
+        self.btn_close.pack(fill=tk.X)
+        
+        # Hover animations
+        def on_enter(e):
+            e.widget.config(bg="#333333")
+        def on_leave(e):
+            e.widget.config(bg="#242424")
+            
+        for btn in [self.btn_clear, self.btn_hide, self.btn_close]:
+            btn.bind("<Enter>", on_enter)
+            btn.bind("<Leave>", on_leave)
 
     def show_context_menu(self, event):
-        self.menu.post(event.x_root, event.y_root)
+        # Place the menu at the cursor relative to the root window
+        x = event.x
+        y = event.y
+        
+        # Keep it within bounds
+        win_width = self.root.winfo_width()
+        win_height = self.root.winfo_height()
+        menu_width = 140
+        menu_height = 90
+        
+        if x + menu_width > win_width:
+            x = win_width - menu_width - 5
+        if y + menu_height > win_height:
+            y = win_height - menu_height - 5
+            
+        self.menu_frame.place(x=x, y=y)
+        
+        # Bind left-click to detect clicks outside the menu and close it
+        self.root.bind("<Button-1>", self.on_root_click, add="+")
+
+    def on_root_click(self, event):
+        # Hide menu if click is outside of the menu frame
+        x, y = event.x, event.y
+        if self.menu_frame.winfo_parent():
+            menu_x = self.menu_frame.winfo_x()
+            menu_y = self.menu_frame.winfo_y()
+            menu_w = self.menu_frame.winfo_width()
+            menu_h = self.menu_frame.winfo_height()
+            
+            if not (menu_x <= x <= menu_x + menu_w and menu_y <= y <= menu_y + menu_h):
+                self.hide_context_menu()
+                
+    def hide_context_menu(self):
+        self.menu_frame.place_forget()
+        # Restore default dragging behavior
+        self.root.bind("<Button-1>", self.start_drag)
+
+    def menu_clear(self):
+        self.clear_text()
+
+    def menu_hide(self):
+        self.temp_hide()
+
+    def menu_close(self):
+        self.root.withdraw()
+        self.hide_context_menu()
 
     def clear_text(self):
+        self.hide_context_menu()
         self.label.config(text="Чекаю запит...")
         self.root.geometry(f"{self.width}x80") # Minimize height
 
     def temp_hide(self):
+        self.hide_context_menu()
         self.root.withdraw()
         self.root.after(5000, self.root.deiconify)
 
@@ -146,6 +226,7 @@ class OverlayWindow:
         try:
             while True:
                 text = self.queue.get_nowait()
+                self.hide_context_menu()
                 # If window is hidden, show it
                 self.root.deiconify()
                 
