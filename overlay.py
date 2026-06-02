@@ -267,9 +267,9 @@ class OverlayWindow:
                 pass
                 
         if self.click_through_enabled:
-            self.header_label.config(text=f"🔒 ПРОЗОРИСТЬ: {opacity_pct}%", fg="#FF5722")
+            self.header_label.config(text=f"🔒 Прозрачность: {opacity_pct}%", fg="#FF5722")
         else:
-            self.header_label.config(text=f"✨ ПРОЗОРИСТЬ: {opacity_pct}%", fg=self.accent_color)
+            self.header_label.config(text=f"✨ Прозрачность: {opacity_pct}%", fg=self.accent_color)
             
         # Schedule restoration of header title after 3 seconds (3000 ms)
         self._restore_timer_id = self.root.after(3000, self.restore_header_title)
