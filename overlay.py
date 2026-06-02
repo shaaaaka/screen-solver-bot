@@ -37,7 +37,7 @@ class OverlayWindow:
         self.click_through_enabled = False
         
         # Bind Ctrl + Scroll Wheel globally inside the overlay app
-        self.root.bind_class("Widget", "<Control-MouseWheel>", self.on_ctrl_wheel)
+        self.root.bind_all("<Control-MouseWheel>", self.on_ctrl_wheel)
         
         # Setup UI layout
         self.setup_ui()
