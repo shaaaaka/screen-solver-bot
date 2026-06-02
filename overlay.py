@@ -258,12 +258,28 @@ class OverlayWindow:
         
         # Display opacity feedback temporarily in header
         opacity_pct = int(new_alpha * 100)
+        
+        # Cancel any pending title restoration timers to prevent flickering
+        if hasattr(self, "_restore_timer_id") and self._restore_timer_id:
+            try:
+                self.root.after_cancel(self._restore_timer_id)
+            except Exception:
+                pass
+                
         if self.click_through_enabled:
-            self.header_label.config(text=f"🔒 ОПАЦИТІ: {opacity_pct}%", fg="#FF5722")
-            self.root.after(1000, lambda: self.header_label.config(text="🔒 SCREEN SOLVER (КЛІК НАСКРІЗЬ)", fg="#FF5722") if self.click_through_enabled else None)
+            self.header_label.config(text=f"🔒 ПРОЗОРИСТЬ: {opacity_pct}%", fg="#FF5722")
         else:
-            self.header_label.config(text=f"✨ ОПАЦИТІ: {opacity_pct}%", fg=self.accent_color)
-            self.root.after(1000, lambda: self.header_label.config(text="✨ SCREEN SOLVER OVERLAY", fg=self.accent_color) if not self.click_through_enabled else None)
+            self.header_label.config(text=f"✨ ПРОЗОРИСТЬ: {opacity_pct}%", fg=self.accent_color)
+            
+        # Schedule restoration of header title after 3 seconds (3000 ms)
+        self._restore_timer_id = self.root.after(3000, self.restore_header_title)
+
+    def restore_header_title(self):
+        self._restore_timer_id = None
+        if self.click_through_enabled:
+            self.header_label.config(text="🔒 SCREEN SOLVER (КЛІК НАСКРІЗЬ)", fg="#FF5722")
+        else:
+            self.header_label.config(text="✨ SCREEN SOLVER OVERLAY", fg=self.accent_color)
 
     def clear_text(self):
         self.hide_context_menu()
