@@ -184,10 +184,11 @@ class OverlayWindow:
 
     def on_root_click(self, event):
         # Hide menu if click is outside of the menu frame
-        x, y = event.x, event.y
+        # Use absolute screen coordinates because event.x/y are relative to the clicked widget
+        x, y = event.x_root, event.y_root
         if self.menu_frame.winfo_parent():
-            menu_x = self.menu_frame.winfo_x()
-            menu_y = self.menu_frame.winfo_y()
+            menu_x = self.menu_frame.winfo_rootx()
+            menu_y = self.menu_frame.winfo_rooty()
             menu_w = self.menu_frame.winfo_width()
             menu_h = self.menu_frame.winfo_height()
             
