@@ -118,6 +118,13 @@ def on_toggle_paused(paused_state):
     is_paused = paused_state
     print(f"Application paused state changed to: {is_paused}")
 
+def on_toggle_click_through():
+    """Toggles click-through mode for the overlay window."""
+    global overlay_win
+    if overlay_win:
+        overlay_win.toggle_click_through()
+        print("Toggled click-through mode.")
+
 def on_exit_app():
     """Callback when user exits the application from system tray."""
     print("Exiting application...")
@@ -154,10 +161,11 @@ def main():
     # We parse and run hotkeys using pynput
     try:
         hotkey_listener = keyboard.GlobalHotKeys({
-            hotkey_str: on_hotkey_triggered
+            hotkey_str: on_hotkey_triggered,
+            "<ctrl>+<shift>+f10": on_toggle_click_through
         })
         hotkey_listener.start()
-        print("Global hotkey listener started.")
+        print("Global hotkey listener started. Click-through toggle: Ctrl+Shift+F10")
     except Exception as e:
         print(f"Failed to start hotkey listener: {e}")
         print("Check if the HOTKEY value in your .env file is correct (e.g., '<ctrl>+<shift>+s')")

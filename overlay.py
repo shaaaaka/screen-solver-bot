@@ -34,6 +34,10 @@ class OverlayWindow:
         # Dragging support state
         self.start_x = 0
         self.start_y = 0
+        self.click_through_enabled = False
+        
+        # Bind Ctrl + Scroll Wheel globally inside the overlay app
+        self.root.bind_class("Widget", "<Control-MouseWheel>", self.on_ctrl_wheel)
         
         # Setup UI layout
         self.setup_ui()
@@ -145,10 +149,12 @@ class OverlayWindow:
         
         self.btn_clear = tk.Button(self.menu_frame, text="Очистити", command=self.menu_clear, **btn_opts)
         self.btn_hide = tk.Button(self.menu_frame, text="Сховати на 5 сек", command=self.menu_hide, **btn_opts)
+        self.btn_click_through = tk.Button(self.menu_frame, text="Клік наскрізь", command=self.menu_toggle_click, **btn_opts)
         self.btn_close = tk.Button(self.menu_frame, text="Закрити оверлей", command=self.menu_close, **btn_opts)
         
         self.btn_clear.pack(fill=tk.X)
         self.btn_hide.pack(fill=tk.X)
+        self.btn_click_through.pack(fill=tk.X)
         self.btn_close.pack(fill=tk.X)
         
         # Hover animations
@@ -157,7 +163,7 @@ class OverlayWindow:
         def on_leave(e):
             e.widget.config(bg="#242424")
             
-        for btn in [self.btn_clear, self.btn_hide, self.btn_close]:
+        for btn in [self.btn_clear, self.btn_hide, self.btn_click_through, self.btn_close]:
             btn.bind("<Enter>", on_enter)
             btn.bind("<Leave>", on_leave)
 
@@ -170,7 +176,7 @@ class OverlayWindow:
         win_width = self.root.winfo_width()
         win_height = self.root.winfo_height()
         menu_width = 140
-        menu_height = 90
+        menu_height = 120
         
         if x + menu_width > win_width:
             x = win_width - menu_width - 5
@@ -206,9 +212,58 @@ class OverlayWindow:
     def menu_hide(self):
         self.temp_hide()
 
+    def menu_toggle_click(self):
+        self.toggle_click_through()
+        self.hide_context_menu()
+
     def menu_close(self):
         self.root.withdraw()
         self.hide_context_menu()
+
+    def toggle_click_through(self):
+        self.set_click_through(not getattr(self, "click_through_enabled", False))
+
+    def set_click_through(self, enabled):
+        self.click_through_enabled = enabled
+        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+        if hwnd == 0:
+            hwnd = self.root.winfo_id()
+            
+        GWL_EXSTYLE = -20
+        WS_EX_TRANSPARENT = 0x00000020
+        
+        style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+        if enabled:
+            # Enable click-through
+            ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT)
+            self.header_label.config(text="🔒 SCREEN SOLVER (КЛІК НАСКРІЗЬ)", fg="#FF5722")
+        else:
+            # Disable click-through
+            ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style & ~WS_EX_TRANSPARENT)
+            self.header_label.config(text="✨ SCREEN SOLVER OVERLAY", fg=self.accent_color)
+            
+        # Force frame update
+        ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0027)
+
+    def on_ctrl_wheel(self, event):
+        # event.delta is +120 or -120 on Windows
+        current_alpha = self.root.attributes("-alpha")
+        step = 0.05
+        if event.delta > 0:
+            new_alpha = min(1.0, current_alpha + step)
+        else:
+            new_alpha = max(0.15, current_alpha - step)
+            
+        self.root.attributes("-alpha", new_alpha)
+        
+        # Display opacity feedback temporarily in header
+        opacity_pct = int(new_alpha * 100)
+        if self.click_through_enabled:
+            self.header_label.config(text=f"🔒 ОПАЦИТІ: {opacity_pct}%", fg="#FF5722")
+            self.root.after(1000, lambda: self.header_label.config(text="🔒 SCREEN SOLVER (КЛІК НАСКРІЗЬ)", fg="#FF5722") if self.click_through_enabled else None)
+        else:
+            self.header_label.config(text=f"✨ ОПАЦИТІ: {opacity_pct}%", fg=self.accent_color)
+            self.root.after(1000, lambda: self.header_label.config(text="✨ SCREEN SOLVER OVERLAY", fg=self.accent_color) if not self.click_through_enabled else None)
 
     def clear_text(self):
         self.hide_context_menu()
