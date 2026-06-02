@@ -162,10 +162,10 @@ def main():
     try:
         hotkey_listener = keyboard.GlobalHotKeys({
             hotkey_str: on_hotkey_triggered,
-            "<ctrl>+<shift>+<f10>": on_toggle_click_through
+            "<ctrl>+<f2>": on_toggle_click_through
         })
         hotkey_listener.start()
-        print("Global hotkey listener started. Click-through toggle: Ctrl+Shift+F10")
+        print("Global hotkey listener started. Click-through toggle: Ctrl+F2")
     except Exception as e:
         print(f"Failed to start hotkey listener: {e}")
         print("Check if the HOTKEY value in your .env file is correct (e.g., '<ctrl>+<shift>+s')")
