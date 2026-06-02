@@ -162,7 +162,7 @@ def main():
     try:
         hotkey_listener = keyboard.GlobalHotKeys({
             hotkey_str: on_hotkey_triggered,
-            "<ctrl>+<shift>+f10": on_toggle_click_through
+            "<ctrl>+<shift>+<f10>": on_toggle_click_through
         })
         hotkey_listener.start()
         print("Global hotkey listener started. Click-through toggle: Ctrl+Shift+F10")
