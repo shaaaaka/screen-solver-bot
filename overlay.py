@@ -167,21 +167,36 @@ class OverlayWindow:
             btn.bind("<Enter>", on_enter)
             btn.bind("<Leave>", on_leave)
 
+    def get_height_for_current_text(self):
+        text = self.label.cget("text")
+        if text == "Чекаю запит...":
+            return 80
+        line_count = sum(max(1, len(line) // 40) for line in text.split('\n'))
+        return max(80, 50 + (line_count * 22))
+
     def show_context_menu(self, event):
-        # Place the menu at the cursor relative to the root window
-        x = event.x
-        y = event.y
+        # Ensure the window is tall enough to show the full menu (needs at least 150px)
+        current_height = self.root.winfo_height()
+        target_height = max(current_height, 150)
+        if current_height < 150:
+            self.root.geometry(f"{self.width}x150")
+            self.root.update_idletasks() # Force geometry update
+            
+        # Get click position relative to the root window using screen coordinates
+        rx = self.root.winfo_rootx()
+        ry = self.root.winfo_rooty()
+        x = event.x_root - rx
+        y = event.y_root - ry
         
-        # Keep it within bounds
+        # Keep it within bounds of the window
         win_width = self.root.winfo_width()
-        win_height = self.root.winfo_height()
+        win_height = target_height
         menu_width = 140
         menu_height = 120
         
-        if x + menu_width > win_width:
-            x = win_width - menu_width - 5
-        if y + menu_height > win_height:
-            y = win_height - menu_height - 5
+        # Enforce that the menu is entirely inside the window and never negative
+        x = max(5, min(x, win_width - menu_width - 5))
+        y = max(5, min(y, win_height - menu_height - 5))
             
         self.menu_frame.place(x=x, y=y)
         
@@ -205,6 +220,9 @@ class OverlayWindow:
         self.menu_frame.place_forget()
         # Restore default dragging behavior
         self.root.bind("<Button-1>", self.start_drag)
+        # Restore window height based on current text content
+        normal_height = self.get_height_for_current_text()
+        self.root.geometry(f"{self.width}x{normal_height}")
 
     def menu_clear(self):
         self.clear_text()
@@ -282,9 +300,8 @@ class OverlayWindow:
             self.header_label.config(text="✨ SCREEN SOLVER OVERLAY", fg=self.accent_color)
 
     def clear_text(self):
-        self.hide_context_menu()
         self.label.config(text="Чекаю запит...")
-        self.root.geometry(f"{self.width}x80") # Minimize height
+        self.hide_context_menu()
 
     def temp_hide(self):
         self.hide_context_menu()
