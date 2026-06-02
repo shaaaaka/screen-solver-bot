@@ -38,6 +38,31 @@ HOTKEY=<ctrl>+<shift>+<f12>
 pip install -r requirements.txt
 ```
 
+### 3. Де брати ключі для налаштування?
+
+#### 1️⃣ Telegram Bot Token (`TELEGRAM_BOT_TOKEN`)
+1. Відкрийте Telegram, знайдіть офіційного бота [@BotFather](https://t.me/BotFather).
+2. Надішліть команду `/newbot`.
+3. Введіть назву для вашого бота, а потім унікальний юзернейм (який має обов'язково закінчуватися на `_bot`, наприклад `MyHelperSolver_bot`).
+4. **BotFather** надішле вам токен (довгий набір літер і цифр). Скопіюйте його в поле `TELEGRAM_BOT_TOKEN` у файлі `.env`.
+
+#### 2️⃣ Telegram Chat ID (`TELEGRAM_CHAT_ID`)
+1. Знайдіть вашого створеного бота в Telegram за його юзернеймом та натисніть кнопку **`Start`** (або надішліть будь-яке повідомлення).
+2. Знайдіть у Telegram бота [@userinfobot](https://t.me/userinfobot) та натисніть `/start`.
+3. Бот у відповідь покаже ваш числовий **Id**. Скопіюйте його в поле `TELEGRAM_CHAT_ID` у файлі `.env`.
+
+#### 3️⃣ API-ключ Gemini / OpenRouter (`GEMINI_API_KEY`)
+Ви можете підключити як прямий ключ від Google Gemini, так і через OpenRouter:
+* **Варіант А (OpenRouter - рекомендується, якщо є проблеми з оплатою карткою):**
+  1. Зайдіть на сайт [openrouter.ai](https://openrouter.ai/).
+  2. Зареєструйтеся та перейдіть у розділ **Keys** $\rightarrow$ **Create Key**.
+  3. Скопіюйте створений ключ (починається на `sk-or-...`) в поле `GEMINI_API_KEY` у `.env`.
+  4. *Примітка:* Не забудьте поповнити баланс OpenRouter (можна через Google Pay або картку від 5$).
+* **Варіант Б (Прямий Gemini API):**
+  1. Зайдіть на [Google AI Studio](https://aistudio.google.com/).
+  2. Натисніть **Get API Key** $\rightarrow$ **Create API Key**.
+  3. Скопіюйте ключ (починається на `AIzaSy...`) в поле `GEMINI_API_KEY` у `.env`.
+
 ---
 
 ## 🚀 Використання
