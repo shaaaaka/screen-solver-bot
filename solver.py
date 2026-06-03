@@ -28,12 +28,14 @@ class GeminiSolver:
                         self.model_name = "openai/gpt-4o-mini"
                     else:
                         self.model_name = "openai/gpt-4o"
+                elif "gemini" in self.model_name.lower():
+                    self.model_name = f"google/{self.model_name}"
                 elif "flash" in self.model_name:
-                    self.model_name = "google/gemini-2.5-flash"
+                    self.model_name = "google/gemini-3.5-flash"
                 elif "pro" in self.model_name:
                     self.model_name = "google/gemini-2.5-pro"
                 else:
-                    self.model_name = "google/gemini-2.5-pro"
+                    self.model_name = "google/gemini-3.5-flash"
             print(f"Using OpenRouter Model: {self.model_name}")
         elif self.is_mistral:
             print("Direct Mistral API mode activated.")
