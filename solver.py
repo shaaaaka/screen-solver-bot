@@ -11,6 +11,8 @@ class GeminiSolver:
         self.is_openrouter = api_key.startswith("sk-or-")
         # Direct Mistral API is activated if key is not OpenRouter and model contains 'mistral' or 'pixtral'
         self.is_mistral = not self.is_openrouter and ("mistral" in config.AI_MODEL.lower() or "pixtral" in config.AI_MODEL.lower())
+        # Direct OpenAI API is activated if key is not OpenRouter/Mistral and starts with 'sk-' or model contains 'gpt'
+        self.is_openai = not self.is_openrouter and not self.is_mistral and (api_key.startswith("sk-") or "gpt" in config.AI_MODEL.lower())
         self.sessions = {}
         
         if self.is_openrouter:
@@ -30,6 +32,10 @@ class GeminiSolver:
             print("Direct Mistral API mode activated.")
             self.model_name = config.AI_MODEL
             print(f"Using Mistral Model: {self.model_name}")
+        elif self.is_openai:
+            print("Direct OpenAI API mode activated.")
+            self.model_name = config.AI_MODEL
+            print(f"Using OpenAI Model: {self.model_name}")
         else:
             print("Direct Gemini API mode activated.")
             import google.generativeai as genai
@@ -49,6 +55,8 @@ class GeminiSolver:
             return self._solve_image_openrouter(image_path)
         elif self.is_mistral:
             return self._solve_image_mistral(image_path)
+        elif self.is_openai:
+            return self._solve_image_openai(image_path)
         else:
             return self._solve_image_gemini(image_path)
 
@@ -57,6 +65,8 @@ class GeminiSolver:
             return self._ask_follow_up_openrouter(chat, question_text)
         elif self.is_mistral:
             return self._ask_follow_up_mistral(chat, question_text)
+        elif self.is_openai:
+            return self._ask_follow_up_openai(chat, question_text)
         else:
             return self._ask_follow_up_gemini(chat, question_text)
 
@@ -352,6 +362,123 @@ class GeminiSolver:
             return answer_text
         except Exception as e:
             print(f"Error in Mistral follow-up: {e}")
+            raise e
+
+    # --- Direct OpenAI API Implementation ---
+    def _solve_image_openai(self, image_path: str):
+        try:
+            base64_image = self.encode_image(image_path)
+            
+            prompt = (
+                "Ти — інтелектуальний помічник. Перед тобою скріншот мого екрану. "
+                "Будь ласка, проаналізуй його вміст:\n"
+                "1. Якщо на скріншоті зображено тестове запитання (тест з варіантами відповідей), надавай ВИКЛЮЧНО літеру (або літери) та текст правильних відповідей.\n"
+                "КРИТИЧНО ВАЖЛИВО: Якщо правильних відповідей кілька, записуй КОЖНУ правильну відповідь СУВОРО З НОВОГО РЯДКА.\n"
+                "НЕ з'єднуй їх в один рядок жодними сполучниками (такими як 'та', 'і', 'або', 'також' тощо).\n"
+                "Приклад правильного формату для кількох відповідей:\n"
+                "a) Konfiguračný súbor logrotate obsahuje syntaktickú chybu.\n"
+                "d) Cron úloha pre logrotate nie je spustená alebo je nesprávne nakonfigurovaná.\n\n"
+                "НЕ пиши жодних розборів, вступів, пояснень чи обґрунтувань. Тільки правильні літери та текст варіантів, кожен варіант з нового рядка. Уважно перевір форму вибору: якщо там квадратні чекбокси, правильних варіантів може бути кілька — знайди та вкажи їх УСІ.\n"
+                "2. Якщо там складне завдання без варіантів відповідей, розв'яжи його покроково.\n"
+                "3. Якщо там код або технічна помилка, поясни її причину та надай виправлене рішення.\n"
+                "4. Якщо це просто веб-сторінка чи зображення, коротко поясни, що на ньому зображено.\n\n"
+                "Будь ласка, пиши відповідь українською мовою."
+            )
+            
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ]
+            
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            data = {
+                "model": self.model_name,
+                "messages": messages,
+                "max_tokens": 2048
+            }
+            
+            response = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                data=json.dumps(data)
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"OpenAI API error: {response.status_code} {response.text}")
+                
+            res_json = response.json()
+            choice = res_json['choices'][0]['message']
+            answer_text = choice['content']
+            
+            history = list(messages)
+            history.append({
+                "role": "assistant",
+                "content": answer_text
+            })
+            
+            return answer_text, history
+        except Exception as e:
+            print(f"Error calling OpenAI API: {e}")
+            raise e
+
+    def _ask_follow_up_openai(self, history, question_text: str):
+        try:
+            prompt = (
+                f"Дай відповідь на наступне запитання користувача щодо попереднього скріншоту:\n\n"
+                f"{question_text}\n\n"
+                f"Відповідай українською мовою, використовуючи Markdown."
+            )
+            history.append({
+                "role": "user",
+                "content": prompt
+            })
+            
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            data = {
+                "model": self.model_name,
+                "messages": history,
+                "max_tokens": 2048
+            }
+            
+            response = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                data=json.dumps(data)
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"OpenAI API error: {response.status_code} {response.text}")
+                
+            res_json = response.json()
+            choice = res_json['choices'][0]['message']
+            answer_text = choice['content']
+            
+            history.append({
+                "role": "assistant",
+                "content": answer_text
+            })
+            
+            return answer_text
+        except Exception as e:
+            print(f"Error in OpenAI follow-up: {e}")
             raise e
 
     # --- Session Management ---
