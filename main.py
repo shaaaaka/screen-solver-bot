@@ -58,14 +58,13 @@ def process_screenshot_worker():
         screenshot.save(temp_path)
         print("Screenshot captured successfully.")
         
-        if not bot or not bot.chat_id:
-            print("Telegram chat ID is not configured yet. Run /start in your Telegram bot first.")
-            if overlay_win:
-                overlay_win.show_answer("❌ Telegram chat ID is not configured yet.\nRun /start in your Telegram bot first.")
-            return
-
-        # Send initial status message to Telegram
-        status_msg = bot.bot.send_message(bot.chat_id, "🔍 Отримано запит. Аналізую ваш екран за допомогою Gemini...")
+        # Send initial status message to Telegram (only if enabled)
+        status_msg = None
+        if bot and bot.chat_id:
+            try:
+                status_msg = bot.bot.send_message(bot.chat_id, "🔍 Отримано запит. Аналізую ваш екран за допомогою Gemini...")
+            except Exception as e:
+                print(f"Failed to send Telegram status message: {e}")
         
         # Send to Gemini
         explanation, chat_session = solver.solve_image(temp_path)
@@ -74,12 +73,16 @@ def process_screenshot_worker():
         if overlay_win:
             overlay_win.show_answer(explanation)
             
-        # Send results to Telegram
-        bot.send_screenshot_result(temp_path, explanation, chat_session)
-        
-        # Clean up status message
-        bot.bot.delete_message(bot.chat_id, status_msg.message_id)
-        print("Explanation and image sent to Telegram.")
+        # Send results to Telegram (only if enabled)
+        if bot and bot.chat_id:
+            try:
+                bot.send_screenshot_result(temp_path, explanation, chat_session)
+                # Clean up status message
+                if status_msg:
+                    bot.bot.delete_message(bot.chat_id, status_msg.message_id)
+                print("Explanation and image sent to Telegram.")
+            except Exception as e:
+                print(f"Failed to send results to Telegram: {e}")
         
     except Exception as e:
         print(f"Error in screenshot worker: {e}")
@@ -87,10 +90,13 @@ def process_screenshot_worker():
             overlay_win.show_answer(f"❌ Виникла помилка під час обробки:\n{str(e)}")
         if bot and bot.chat_id:
             error_text = f"❌ Виникла помилка під час обробки знімку екрану:\n`{str(e)}`"
-            if status_msg:
-                bot.bot.edit_message_text(error_text, bot.chat_id, status_msg.message_id, parse_mode='Markdown')
-            else:
-                bot.send_text_safe(bot.chat_id, error_text)
+            try:
+                if status_msg:
+                    bot.bot.edit_message_text(error_text, bot.chat_id, status_msg.message_id, parse_mode='Markdown')
+                else:
+                    bot.send_text_safe(bot.chat_id, error_text)
+            except Exception as ex:
+                print(f"Could not report error to Telegram: {ex}")
     finally:
         # Clean up screenshot file
         if os.path.exists(temp_path):
@@ -144,15 +150,21 @@ def main():
     # Verify environment variables
     if not config.check_config():
         print("Application cannot start without proper configuration.")
-        print("Please check `.env` and fill in: TELEGRAM_BOT_TOKEN and AI_API_KEY.")
+        print("Please check `.env` and fill in: AI_API_KEY.")
         sys.exit(1)
         
     # Initialize Core Modules
     solver = GeminiSolver(config.AI_API_KEY)
-    bot = ScreenSolverBot(solver)
     
-    # Start Telegram Bot Polling Thread
-    bot.start_polling()
+    # Initialize Telegram Bot (if configured)
+    has_tg = config.TELEGRAM_BOT_TOKEN and config.TELEGRAM_BOT_TOKEN != "your_telegram_bot_token_here"
+    if has_tg:
+        bot = ScreenSolverBot(solver)
+        bot.start_polling()
+        print("Telegram integration enabled.")
+    else:
+        bot = None
+        print("Telegram integration disabled (running in overlay-only mode).")
     
     # Setup Hotkey Listener
     hotkey_str = config.HOTKEY

@@ -14,14 +14,9 @@ REASONING_EFFORT = os.getenv("REASONING_EFFORT", "none")
 def check_config():
     """Verify that all required environment variables are set."""
     missing = []
-    if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "your_telegram_bot_token_here":
-        missing.append("TELEGRAM_BOT_TOKEN")
     if not AI_API_KEY or AI_API_KEY == "your_ai_api_key_here":
         missing.append("AI_API_KEY")
         
-    # Note: TELEGRAM_CHAT_ID can be optional initially because the bot can auto-detect it on /start
-    chat_id_missing = not TELEGRAM_CHAT_ID or TELEGRAM_CHAT_ID == "your_telegram_chat_id_here"
-    
     if missing:
         print("\n" + "="*50)
         print("WARNING: Missing required configuration in .env file:")
@@ -31,11 +26,20 @@ def check_config():
         print("="*50 + "\n")
         return False
         
-    if chat_id_missing:
+    # Optional warnings
+    has_tg = TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_TOKEN != "your_telegram_bot_token_here"
+    if not has_tg:
         print("\n" + "="*50)
-        print("NOTE: TELEGRAM_CHAT_ID is not configured in .env.")
-        print("Please send a message (like /start) to your bot in Telegram,")
-        print("and the bot will output your chat ID so you can save it in .env.")
+        print("NOTE: TELEGRAM_BOT_TOKEN is not configured in .env.")
+        print("Running in overlay-only mode (Telegram notifications disabled).")
         print("="*50 + "\n")
+    else:
+        chat_id_missing = not TELEGRAM_CHAT_ID or TELEGRAM_CHAT_ID == "your_telegram_chat_id_here"
+        if chat_id_missing:
+            print("\n" + "="*50)
+            print("NOTE: TELEGRAM_CHAT_ID is not configured in .env.")
+            print("Please send a message (like /start) to your bot in Telegram,")
+            print("and the bot will output your chat ID so you can save it in .env.")
+            print("="*50 + "\n")
         
     return True
