@@ -21,7 +21,12 @@ class GeminiSolver:
             # If the user has a standard model name from Gemini (e.g. gemini-2.5-flash)
             # map it to OpenRouter naming convention
             if not "/" in self.model_name:
-                if "flash" in self.model_name:
+                if "gpt" in self.model_name.lower():
+                    if "mini" in self.model_name.lower():
+                        self.model_name = "openai/gpt-4o-mini"
+                    else:
+                        self.model_name = "openai/gpt-4o"
+                elif "flash" in self.model_name:
                     self.model_name = "google/gemini-2.5-flash"
                 elif "pro" in self.model_name:
                     self.model_name = "google/gemini-2.5-pro"
