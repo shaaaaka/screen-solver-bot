@@ -59,6 +59,16 @@ class OverlayWindow:
         # Start the queue checker
         self.root.after(100, self.check_queue)
 
+    def format_hotkey(self, hotkey_str):
+        """Formats config.HOTKEY (e.g. '<ctrl>+<shift>+<f12>') to human-readable format ('Ctrl + Shift + F12')."""
+        parts = []
+        for part in hotkey_str.split('+'):
+            part = part.strip()
+            if part.startswith('<') and part.endswith('>'):
+                part = part[1:-1]
+            parts.append(part.capitalize())
+        return " + ".join(parts)
+
     def setup_ui(self):
         # Header/Title Bar Area
         self.header_frame = tk.Frame(self.root, bg=self.bg_color)
@@ -93,10 +103,13 @@ class OverlayWindow:
         self.text_frame = tk.Frame(self.root, bg=self.bg_color)
         self.text_frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=(0, 12))
         
+        import config
+        hotkey_display = self.format_hotkey(config.HOTKEY)
+        
         # Text label with autowrap
         self.label = tk.Label(
             self.text_frame,
-            text="Чекаю запит...\nНатисніть гарячі клавіші (Ctrl + F1), щоб отримати відповідь.",
+            text=f"Чекаю запит...\nНатисніть гарячі клавіші ({hotkey_display}), щоб отримати відповідь.",
             font=("Segoe UI", 11),
             fg=self.text_color,
             bg=self.bg_color,
@@ -300,7 +313,9 @@ class OverlayWindow:
             self.header_label.config(text="✨ SCREEN SOLVER OVERLAY", fg=self.accent_color)
 
     def clear_text(self):
-        self.label.config(text="Чекаю запит...")
+        import config
+        hotkey_display = self.format_hotkey(config.HOTKEY)
+        self.label.config(text=f"Чекаю запит...\nНатисніть гарячі клавіші ({hotkey_display}), щоб отримати відповідь.")
         self.hide_context_menu()
 
     def temp_hide(self):
