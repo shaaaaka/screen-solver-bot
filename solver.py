@@ -28,7 +28,10 @@ class GeminiSolver:
             print("Direct Gemini API mode activated.")
             import google.generativeai as genai
             genai.configure(api_key=self.api_key)
-            self.model_name = config.AI_MODEL
+            model_name = config.AI_MODEL
+            if model_name.startswith("google/"):
+                model_name = model_name.replace("google/", "", 1)
+            self.model_name = model_name
             print(f"Using Gemini Model: {self.model_name}")
 
     def encode_image(self, image_path: str):
