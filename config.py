@@ -6,9 +6,9 @@ load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+AI_API_KEY = os.getenv("AI_API_KEY")
 HOTKEY = os.getenv("HOTKEY", "<ctrl>+<shift>+<f12>")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+AI_MODEL = os.getenv("AI_MODEL", "gemini-2.5-flash")
 REASONING_EFFORT = os.getenv("REASONING_EFFORT", "none")
 
 def check_config():
@@ -16,8 +16,8 @@ def check_config():
     missing = []
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "your_telegram_bot_token_here":
         missing.append("TELEGRAM_BOT_TOKEN")
-    if not GEMINI_API_KEY or GEMINI_API_KEY == "your_gemini_api_key_here":
-        missing.append("GEMINI_API_KEY")
+    if not AI_API_KEY or AI_API_KEY == "your_ai_api_key_here":
+        missing.append("AI_API_KEY")
         
     # Note: TELEGRAM_CHAT_ID can be optional initially because the bot can auto-detect it on /start
     chat_id_missing = not TELEGRAM_CHAT_ID or TELEGRAM_CHAT_ID == "your_telegram_chat_id_here"

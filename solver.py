@@ -13,7 +13,7 @@ class GeminiSolver:
         
         if self.is_openrouter:
             print("OpenRouter mode activated.")
-            self.model_name = config.GEMINI_MODEL
+            self.model_name = config.AI_MODEL
             # If the user has a standard model name from Gemini (e.g. gemini-2.5-flash)
             # map it to OpenRouter naming convention
             if not "/" in self.model_name:
@@ -28,7 +28,7 @@ class GeminiSolver:
             print("Direct Gemini API mode activated.")
             import google.generativeai as genai
             genai.configure(api_key=self.api_key)
-            self.model_name = config.GEMINI_MODEL
+            self.model_name = config.AI_MODEL
             print(f"Using Gemini Model: {self.model_name}")
 
     def encode_image(self, image_path: str):

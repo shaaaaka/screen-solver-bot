@@ -144,11 +144,11 @@ def main():
     # Verify environment variables
     if not config.check_config():
         print("Application cannot start without proper configuration.")
-        print("Please check `.env` and fill in: TELEGRAM_BOT_TOKEN and GEMINI_API_KEY.")
+        print("Please check `.env` and fill in: TELEGRAM_BOT_TOKEN and AI_API_KEY.")
         sys.exit(1)
         
     # Initialize Core Modules
-    solver = GeminiSolver(config.GEMINI_API_KEY)
+    solver = GeminiSolver(config.AI_API_KEY)
     bot = ScreenSolverBot(solver)
     
     # Start Telegram Bot Polling Thread
