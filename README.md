@@ -26,24 +26,31 @@
 ```env
 TELEGRAM_BOT_TOKEN=ваш_токен_бота
 TELEGRAM_CHAT_ID=ваш_chat_id
-GEMINI_API_KEY=ваш_api_ключ_openrouter_або_gemini
-GEMINI_MODEL=google/gemini-3.5-flash
+AI_API_KEY=ваш_api_ключ_openrouter_або_gemini
+AI_MODEL=google/gemini-3.5-flash
 REASONING_EFFORT=none
 HOTKEY=<ctrl>+<f1>
 ```
 
 > [!TIP]
 > **Використання інших моделей (GPT-4o, Claude 3.5, Llama тощо):**
-> Оскільки наш бот підтримує роботу через **OpenRouter**, ви не обмежені лише моделями Gemini! Якщо ви використовуєте API-ключ OpenRouter, ви можете легко перемикатися на будь-яку іншу модель у світі, яка вміє аналізувати зображення. Для цього просто змініть назву моделі в полі `GEMINI_MODEL` у файлі `.env` на потрібний ідентифікатор з сайту OpenRouter, наприклад:
+> Оскільки наш бот підтримує роботу через **OpenRouter**, ви не обмежені лише моделями Gemini! Якщо ви використовуєте API-ключ OpenRouter, ви можете легко перемикатися на будь-яку іншу модель у світі, яка вміє аналізувати зображення. Для цього просто змініть назву моделі в полі `AI_MODEL` у файлі `.env` на потрібний ідентифікатор з сайту OpenRouter, наприклад:
 > * `openai/gpt-4o` (флагманська модель від OpenAI)
 > * `openai/gpt-4o-mini` (дуже швидка та дешева модель від OpenAI)
 > * `anthropic/claude-3.5-sonnet` (топ-модель від Anthropic з чудовою логікою)
 > * `meta-llama/llama-3.2-11b-vision-instruct` (чудова бюджетна open-source модель)
 
 ### 2. Встановлення залежностей
-Переконайтеся, що у вас встановлено Python 3.10+ та виконайте команду в терміналі:
+Переконайтеся, що у вас встановлено Python 3.10+. 
+
+Для встановлення всіх необхідних бібліотек виконайте команду в терміналі:
 ```bash
 pip install -r requirements.txt
+```
+
+Або, якщо ви бажаєте встановити залежності однією командою вручну:
+```bash
+pip install google-generativeai pyTelegramBotAPI pynput Pillow python-dotenv pystray
 ```
 
 ### 3. Де брати ключі для налаштування?
@@ -59,17 +66,17 @@ pip install -r requirements.txt
 2. Знайдіть у Telegram бота [@userinfobot](https://t.me/userinfobot) та натисніть `/start`.
 3. Бот у відповідь покаже ваш числовий **Id**. Скопіюйте його в поле `TELEGRAM_CHAT_ID` у файлі `.env`.
 
-#### 3️⃣ API-ключ Gemini / OpenRouter (`GEMINI_API_KEY`)
+#### 3️⃣ API-ключ Gemini / OpenRouter (`AI_API_KEY`)
 Ви можете підключити як прямий ключ від Google Gemini, так і через OpenRouter:
 * **Варіант А (OpenRouter - рекомендується, якщо є проблеми з оплатою карткою):**
   1. Зайдіть на сайт [openrouter.ai](https://openrouter.ai/).
   2. Зареєструйтеся та перейдіть у розділ **Keys** $\rightarrow$ **Create Key**.
-  3. Скопіюйте створений ключ (починається на `sk-or-...`) в поле `GEMINI_API_KEY` у `.env`.
+  3. Скопіюйте створений ключ (починається на `sk-or-...`) в поле `AI_API_KEY` у `.env`.
   4. *Примітка:* Не забудьте поповнити баланс OpenRouter (можна через Google Pay або картку від 5$).
 * **Варіант Б (Прямий Gemini API):**
   1. Зайдіть на [Google AI Studio](https://aistudio.google.com/).
   2. Натисніть **Get API Key** $\rightarrow$ **Create API Key**.
-  3. Скопіюйте ключ (починається на `AIzaSy...`) в поле `GEMINI_API_KEY` у `.env`.
+  3. Скопіюйте ключ (починається на `AIzaSy...`) в поле `AI_API_KEY` у `.env`.
 
 ---
 
