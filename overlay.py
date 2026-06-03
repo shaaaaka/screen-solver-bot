@@ -96,7 +96,7 @@ class OverlayWindow:
         # Text label with autowrap
         self.label = tk.Label(
             self.text_frame,
-            text="Чекаю запит...\nНатисніть гарячі клавіші (Ctrl + Shift + F12), щоб отримати відповідь.",
+            text="Чекаю запит...\nНатисніть гарячі клавіші (Ctrl + F1), щоб отримати відповідь.",
             font=("Segoe UI", 11),
             fg=self.text_color,
             bg=self.bg_color,
